@@ -3,9 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>RAG Engine Chatbot</title>
+    <!-- Load Tailwind CSS from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar styles for a cleaner look */
+        #chat-window::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-window::-webkit-scrollbar-thumb {
+            background-color: #4a5568; /* Darker gray */
+            border-radius: 4px;
+        }
+        #chat-window::-webkit-scrollbar-track {
+            background-color: #2d3748; /* Even darker gray */
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-    
+<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center font-sans p-4">
+
+    <div class="bg-gray-800 shadow-2xl rounded-xl w-full max-w-4xl flex flex-col h-[90vh]">
+        
+        <!-- Header -->
+        <header class="p-4 border-b border-gray-700 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-indigo-400">RAG Document Explorer</h1>
+            <button id="clear-db-button" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                Clear DB
+            </button>
+        </header>
+
+        <!-- Chat Window (Display) -->
+        <div id="chat-window" class="flex-grow p-4 space-y-4 overflow-y-auto">
+            <!-- Initial Greeting/Status Message -->
+            <div class="flex justify-start">
+                <div class="bg-indigo-700 text-white p-3 rounded-xl rounded-tl-none max-w-3xl shadow-lg">
+                    <p class="text-sm font-semibold">System</p>
+                    <p>Welcome! Upload a document (.pdf, .txt, .docx) to start, then ask a question.</p>
+                </div>
+            </div>
+        </div>
+
+            <!-- Upload Form -->
+            <form id="upload-form" class="flex space-x-3 mb-4">
+                <label for="file-upload" class="flex-grow bg-gray-700 hover:bg-gray-600 cursor-pointer text-center py-2 px-4 rounded-lg transition duration-200 font-medium">
+                    <span id="file-name-display">Choose Document (.pdf, .txt, .docx)</span>
+                    <input id="file-upload" type="file" accept=".pdf,.txt,.docx" class="hidden">
+                </label>
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200 shadow-md" id="upload-button" disabled>
+                    Upload
+                </button>
+            </form>
+
+            <!-- Chat Input Form -->
+            <form id="chat-form" class="flex space-x-3">
+                <input id="question-input" type="text" placeholder="Ask a question about the documents..." class="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" required>
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-md">
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
 </body>
 </html>
