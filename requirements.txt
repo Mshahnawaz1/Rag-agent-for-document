@@ -6,4 +6,9 @@ dotenv
 langchain-google-genai
 chromadb
 langchain-chroma
-numpy
+python-multipart
+fastapi
+uvicorn
+flask
+
+# pip install -r requirements.txt
