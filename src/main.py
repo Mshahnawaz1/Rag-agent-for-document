@@ -1,8 +1,8 @@
 from fastapi import UploadFile, File, FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Union
 
 import os
 
@@ -25,7 +25,9 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    file_path = os.path.join(os.path.dirname(__file__), "../frontend/index.html")
+    return FileResponse(file_path)
+
 
 @app.get("/clearDB")
 def clear_db():
