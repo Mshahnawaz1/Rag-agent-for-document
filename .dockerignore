@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+venv/
+env/
+
+# Runtime data (should be in volumes, not image)
+data/
+*.sqlite3
+*.db
+
+# Development files
+.git/
+.vscode/
+notebook/
+# *.ipynb
+*.md
+
+# Docker files (don't copy into image)
+.dockerignore
+docker-compose.yml

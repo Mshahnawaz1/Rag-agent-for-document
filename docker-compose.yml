@@ -1,0 +1,40 @@
+
+services:
+  # FastAPI backend service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rag-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount data directory for both uploads and chroma_db
+      # This matches the relative paths used in main.py and rag_engine.py
+      - ./data:/app/data
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - rag-network
+
+  # Nginx frontend service
+  frontend:
+    image: nginx:alpine
+    container_name: rag-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - rag-network
+
+networks:
+  rag-network:
+    driver: bridge

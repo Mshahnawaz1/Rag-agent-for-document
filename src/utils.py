@@ -1,9 +1,9 @@
 import os
 from typing import List
 from langchain_core.documents import Document
-from langchain.document_loaders import TextLoader,PyPDFLoader,Docx2txtLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
+from langchain_community.document_loaders import TextLoader, PyPDFLoader, Docx2txtLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
 
 
 FILE_LOADER_MAP = {
@@ -11,6 +11,10 @@ FILE_LOADER_MAP = {
     ".pdf": PyPDFLoader,
     ".docx": Docx2txtLoader,
 }
+
+def format_docs(docs: List[Document]) -> str:
+    """Formats a list of Documents into a single string."""
+    return "\n\n".join(doc.page_content for doc in docs)
 
 def document_loader(file_path: str) -> List[Document]:
     _, extension = os.path.splitext(file_path)
