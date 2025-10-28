@@ -1,20 +1,19 @@
 from fastapi import UploadFile, File, FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-
-from typing import Union
-import os
 from pydantic import BaseModel
+from typing import Union
+
+import os
 
 from dotenv import load_dotenv
 from rag_engine import Rag
-
 
 app = FastAPI(title="RAG Engine API", description="API for RAG", version="1.0.0")
 _rag = Rag()
 load_dotenv()
 
-
+UPLOAD = "../data/uploads"
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,8 +44,8 @@ async def upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Only .pdf, .txt, .docx are supported.")
 
     # Save uploaded file
-    os.makedirs("uploads", exist_ok=True)
-    file_path = os.path.join("uploads", filename)
+    os.makedirs(UPLOAD, exist_ok=True)
+    file_path = os.path.join(UPLOAD, filename)
     with open(file_path, "wb") as f:
         content = await file.read()
         f.write(content)

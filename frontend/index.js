@@ -1,4 +1,7 @@
-        const BASE_URL = "http://127.0.0.1:8000"; // Assuming FastAPI runs locally on port 8000
+        // Use /api prefix for docker-compose nginx proxy, or direct backend URL for local dev
+        const BASE_URL = window.location.hostname === 'localhost' && window.location.port === '5500'
+            ? "http://127.0.0.1:8000"  // Local dev (python -m http.server)
+            : "/api";                   // Docker/production (nginx proxy)
         const chatWindow = document.getElementById('chat-window');
         const uploadForm = document.getElementById('upload-form');
         const fileInput = document.getElementById('file-upload');

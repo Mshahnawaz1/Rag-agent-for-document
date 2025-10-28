@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAG Engine Chatbot</title>
-    <!-- Load Tailwind CSS from CDN -->
+    <title>AI tutor — RAG Document Chatbot</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Custom scrollbar styles for a cleaner look */
@@ -12,11 +11,19 @@
             width: 8px;
         }
         #chat-window::-webkit-scrollbar-thumb {
-            background-color: #4a5568; /* Darker gray */
+            background-color: #3b82f6; /* Blue-500 for a professional touch */
             border-radius: 4px;
         }
         #chat-window::-webkit-scrollbar-track {
-            background-color: #2d3748; /* Even darker gray */
+            background-color: #1f2937; /* Gray-800 */
+        }
+        
+        /* Subtle Grid Pattern Background */
+        .grid-background {
+            background-color: #0f172a; /* Slate-900: Darker, more professional background */
+            background-image: linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .03) 25%, rgba(255, 255, 255, .03) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .03) 75%, rgba(255, 255, 255, .03) 76%, transparent 77%, transparent), 
+                              linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, .03) 25%, rgba(255, 255, 255, .03) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .03) 75%, rgba(255, 255, 255, .03) 76%, transparent 77%, transparent);
+            background-size: 50px 50px; /* Size of the grid cells */
         }
     </style>
     <script>
@@ -25,50 +32,67 @@
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        // Using a more modern, professional blue palette
+                        primary: {
+                            600: '#2563eb', // Blue-600 for main buttons
+                            700: '#1d4ed8', // Blue-700 for hover
+                            800: '#1e3a8a', // Blue-800 for chatbot messages
+                        },
+                        secondary: '#f97316', // Orange-500 for accents/status
                     }
                 }
             }
         }
     </script>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center font-sans p-4">
 
-    <div class="bg-gray-800 shadow-2xl rounded-xl w-full max-w-4xl flex flex-col h-[90vh]">
+<body class="grid-background text-gray-100 min-h-screen flex items-center justify-center font-sans p-4">
+
+    <div class="bg-gray-800 shadow-2xl rounded-2xl w-full max-w-5xl flex flex-col h-[95vh] lg:h-[90vh] overflow-hidden border border-gray-700/50">
         
-        <!-- Header -->
-        <header class="p-4 border-b border-gray-700 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-indigo-400">RAG Document Explorer</h1>
-            <button id="clear-db-button" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md">
-                Clear DB
+        <header class="p-5 border-b border-gray-700/70 bg-gray-900 flex justify-between items-center sticky top-0 z-10 shadow-lg">
+            <div class="flex items-center space-x-3">
+                <svg class="w-8 h-8 text-primary-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="20" height="20" x="2" y="2" rx="4" fill="currentColor" class="opacity-90"></rect>
+                    <path d="M7 12h10M7 16h6" stroke="rgba(255,255,255,0.95)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+                <div>
+                    <h1 class="text-2xl font-extrabold text-white tracking-tight leading-snug">AI tutor</h1>
+                    <div class="text-sm text-primary-600">Document Q&A</div>
+                </div>
+            </div>
+            <button id="clear-db-button" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 shadow-lg text-sm flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <span>Clear Index</span>
             </button>
         </header>
 
-        <!-- Chat Window (Display) -->
-        <div id="chat-window" class="flex-grow p-4 space-y-4 overflow-y-auto">
-            <!-- Initial Greeting/Status Message -->
+        <div id="chat-window" class="flex-grow p-6 space-y-6 overflow-y-auto">
             <div class="flex justify-start">
-                <div class="bg-indigo-700 text-white p-3 rounded-xl rounded-tl-none max-w-3xl shadow-lg">
-                    <p class="text-sm font-semibold">System</p>
-                    <p>Welcome! Upload a document (.pdf, .txt, .docx) to start, then ask a question.</p>
+                <div class="bg-gray-700 text-gray-200 p-4 rounded-xl rounded-tl-none max-w-3xl shadow-lg border border-gray-600/50">
+                    <p class="text-xs font-mono text-primary-600 mb-1">AI tutor</p>
+                    <p class="text-base">Welcome! To begin, upload a document (PDF, TXT, DOCX) using the section below, then ask a question about its content.</p>
                 </div>
             </div>
-        </div>
+            </div>
 
-            <!-- Upload Form -->
-            <form id="upload-form" class="flex space-x-3 mb-4">
-                <label for="file-upload" class="flex-grow bg-gray-700 hover:bg-gray-600 cursor-pointer text-center py-2 px-4 rounded-lg transition duration-200 font-medium">
-                    <span id="file-name-display">Choose Document (.pdf, .txt, .docx)</span>
+        <div class="p-6 bg-gray-900 border-t border-gray-700/70 space-y-4">
+            
+            <form id="upload-form" class="flex space-x-4 items-center">
+                <label for="file-upload" class="flex-grow bg-gray-700 hover:bg-gray-600 cursor-pointer text-center py-3 px-4 rounded-xl transition duration-200 font-semibold text-sm shadow-inner border border-gray-600">
+                    <span id="file-name-display" class="truncate block">Select Document (.pdf, .txt, .docx)</span>
                     <input id="file-upload" type="file" accept=".pdf,.txt,.docx" class="hidden">
                 </label>
-                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200 shadow-md" id="upload-button" disabled>
+                <button type="submit" class="flex-shrink-0 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-8 rounded-xl transition duration-200 shadow-xl disabled:bg-gray-500 disabled:shadow-none" id="upload-button" disabled>
                     Upload
                 </button>
             </form>
 
-            <!-- Chat Input Form -->
-            <form id="chat-form" class="flex space-x-3">
-                <input id="question-input" type="text" placeholder="Ask a question about the documents..." class="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" required>
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-md">
+            <form id="chat-form" class="flex space-x-4">
+                <input id="question-input" type="text" placeholder="Ask a question about the indexed documents..." class="flex-grow p-4 bg-gray-700 border border-gray-600 rounded-xl focus:ring-primary-600 focus:border-primary-600 transition duration-150 shadow-inner placeholder-gray-400" required>
+                <button type="submit" class="flex-shrink-0 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-8 rounded-xl transition duration-200 shadow-xl">
                     Send
                 </button>
             </form>
