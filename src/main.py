@@ -65,7 +65,6 @@ class AskRequest(BaseModel):
 @app.post("/ask")
 async def ask_question(request: AskRequest):
     query = (request.query or "").strip()
-    print("Received query:" + 10 * '$$$$', query)
 
     if not query:
         raise HTTPException(status_code=400, detail="'query' must be a non-empty string")
