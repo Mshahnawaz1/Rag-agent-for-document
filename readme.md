@@ -36,8 +36,8 @@ This system provides accurate, context-aware answers without hallucination by gr
 3.  **Storage:** These embeddings are stored in a **Chroma DB** collection, establishing a persistent knowledge base.
 4.  **Retrieval-Augmentation (RAG):**
     * When a user asks a question, an embedding is created for the query.
-    * This query embedding is used to search the Chroma DB for the **most relevant document chunks**.
-    * These relevant chunks are then packaged as **context** and passed along with the user's original question to the **Gemini LLM**.
+    * This query embedding is used to search the Chroma DB for the **most relevant document chunks** (currently using similarity search).
+    * These chunks are then packaged as **context** and passed along with the user's original question to the **Gemini LLM**.
 5.  **Generation:** The **Gemini LLM** (`gemini-pro`) generates a precise answer grounded *only* in the provided document context.
 
 ---
