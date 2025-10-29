@@ -1,4 +1,4 @@
-# 🤖 AI-Powered Document Assistant (RAG System)
+# AI-Powered Document Assistant (RAG System)
 
 <div align="center">
 <div align="center">
@@ -11,7 +11,7 @@
 
 ---
 
-## ✨ Summary
+## Summary
 
 This project implements an **AI-Powered Document Assistant** using a **Retrieval-Augmented Generation (RAG)** architecture. It allows users to upload various document types (PDF, TXT, DOCX), processes them to create embeddings, stores them in a vector database, and uses the Google Gemini model to answer user queries based solely on the uploaded content.
 
@@ -19,7 +19,7 @@ This system provides accurate, context-aware answers without hallucination by gr
 
 ---
 
-## 🛠️ Tech Stack & Key Components
+## Tech Stack & Key Components
 
 * **LLM & Embeddings:** **Google Gemini API** (Specifically, `gemini-pro` for generation and `models/text-embedding-004` for embeddings).
 * **Vector Database:** **Chroma DB** for persistent storage of document embeddings.
@@ -29,7 +29,7 @@ This system provides accurate, context-aware answers without hallucination by gr
 
 ---
 
-## ⚙️ Working Principle
+## Working Principle
 
 1.  **Ingestion:** The user uploads a supported document (**`.pdf`**, **`.txt`**, **`.docx`**).
 2.  **Embedding Creation:** The document content is split into chunks, and the Google **`models/text-embedding-004`** model generates a high-quality vector **embedding** for each chunk.
@@ -42,7 +42,7 @@ This system provides accurate, context-aware answers without hallucination by gr
 
 ---
 
-## 🚀 Setup & Installation
+## Setup & Installation
 
 You have two options for setting up the project: directly using a virtual environment or via Docker.
 
