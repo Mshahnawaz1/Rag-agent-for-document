@@ -18,14 +18,15 @@ load_dotenv()
 UPLOAD = "../data/uploads"
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "../frontend")
 
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,             # Allow cookies and Authorization header
+    allow_credentials=True,             
     allow_methods=["*"],      
-    allow_headers=["*"],                # Allow all headers (including custom ones)
+    allow_headers=["*"],         
 )
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 @app.get("/")
 def read_root():

@@ -6,46 +6,76 @@
     <title>RAG Document Chatbot</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #chat-window::-webkit-scrollbar { width: 6px; }
-        #chat-window::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        /* Professional palette with light orange and black */
+        :root{
+            --bg: #fef3e2;                /* light orange background */
+            --surface: #ffffff;            /* cards/sections */
+            --text: #000000;               /* black text */
+            --muted: #4a4a4a;              /* dark gray for muted */
+            --border: #ffb84d;             /* orange border */
+            --primary: #ff9933;            /* light orange primary */
+            --primary-hover: #ff8000;      /* darker orange hover */
+            --ring: rgba(255,153,51,0.35); /* orange focus ring */
+            --danger: #dc2626;             /* red-600 */
+            --danger-hover: #b91c1c;       /* red-700 */
+            --chat-bg: #fff8f0;            /* very light orange chat bg */
+            --input-bg: #ffffff;           
+            --input-border: #ffb84d;       /* orange input border */
+            --bubble-user-bg: #ff9933;     /* light orange user bubble */
+            --bubble-user-text: #000000;   /* black text */
+            --bubble-bot-bg: #ffffff;      /* white bot bubble */
+            --bubble-bot-text: #000000;    /* black text */
+        }
+
+        /* Subtle scrollbar */
+        #chat-window::-webkit-scrollbar { width: 8px; }
+        #chat-window::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        #chat-window::-webkit-scrollbar-track { background: transparent; }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 flex flex-col min-h-screen">
+<body class="flex flex-col h-screen overflow-hidden bg-[var(--bg)] text-[var(--text)]">
 
     <!-- Header -->
-    <header class="bg-blue-600 text-white py-4 shadow">
-        <h1 class="text-center text-2xl font-semibold">AI Document Assistant</h1>
+    <header class="bg-[var(--surface)] text-[var(--text)] border-b border-[var(--border)] py-4">
+        <h1 class="text-center text-2xl font-semibold text-[var(--primary)]">AI Document Assistant</h1>
     </header>
 
-    <main class="flex flex-1">
+    <main class="flex flex-1 min-h-0">
         <!-- Sidebar -->
-        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col p-4 space-y-4">
-            <h2 class="text-lg font-semibold mb-2">Controls</h2>
+        <aside class="w-64 bg-[var(--surface)] border-r border-[var(--border)] flex flex-col p-4 space-y-4 h-full overflow-visible">
+            <h2 class="text-lg font-semibold mb-2 text-[var(--text)]">Controls</h2>
 
             <!-- Upload -->
             <label class="block">
-                <span class="text-sm font-medium text-gray-700">Upload Document</span>
+                <span class="text-sm font-medium text-[var(--muted)]">Upload Document</span>
                 <input id="fileInput" type="file" accept=".pdf,.txt,.docx"
-                    class="mt-2 block w-full text-sm text-gray-600 border rounded-lg cursor-pointer focus:outline-none"/>
+                    class="mt-2 block w-full text-sm text-[var(--muted)] border border-[var(--input-border)] bg-[var(--input-bg)] rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"/>
             </label>
-            <button id="uploadBtn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm">
+            <button id="uploadBtn" class="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white py-2 px-4 rounded-lg text-sm transition-colors">
                 Upload & Process
             </button>
 
             <!-- Clear DB -->
-            <button id="clearBtn" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm">
+            <button id="clearBtn" class="bg-[var(--danger)] hover:bg-[var(--danger-hover)] text-white py-2 px-4 rounded-lg text-sm transition-colors">
                 Clear Database
             </button>
         </aside>
 
         <!-- Chat Area -->
-        <section class="flex-1 flex flex-col">
-            <div id="chat-window" class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50"></div>
+        <section class="flex-1 flex flex-col relative bg-[var(--chat-bg)] min-h-0">
+            <!-- Chat Messages -->
+            <div id="chat-window" 
+                class="flex-1 overflow-y-auto px-6 py-4 space-y-4 bg-[var(--chat-bg)] scroll-smooth">
+            </div>
 
-            <div class="border-t p-4 flex items-center bg-white">
-                <input id="queryInput" type="text" placeholder="Ask a question about your documents..."
-                    class="flex-1 border rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                <button id="sendBtn" class="ml-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+            <!-- Fixed Chat Input -->
+            <div class="border-t border-[var(--border)] bg-[var(--surface)] p-4 flex items-center sticky bottom-0">
+                <textarea id="queryInput"
+                    placeholder="Ask a question about your documents..."
+                    rows="1"
+                    class="flex-1 resize-none border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text)] placeholder-[var(--muted)] rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] overflow-hidden"></textarea>
+                <button id="sendBtn"
+                    class="ml-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-4 py-2 rounded-lg text-sm transition-colors">
                     Send
                 </button>
             </div>
@@ -61,19 +91,43 @@
         const clearBtn = document.getElementById("clearBtn");
         const fileInput = document.getElementById("fileInput");
 
+        function escapeHTML(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         function appendMessage(sender, text) {
             const msg = document.createElement("div");
-            msg.className = sender === "user"
-                ? "text-right"
-                : "text-left";
+            msg.className = sender === "user" ? "text-right" : "text-left";
+            const safe = escapeHTML(text);
             msg.innerHTML = `
-                <div class="${sender === "user" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"} 
+                <div class="${sender === "user" ? "bg-[var(--bubble-user-bg)] text-[var(--bubble-user-text)]" : "bg-[var(--bubble-bot-bg)] text-[var(--bubble-bot-text)]"} 
                     inline-block px-4 py-2 rounded-2xl max-w-[75%]">
-                    ${text}
+                    ${safe}
                 </div>`;
             chatWindow.appendChild(msg);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+            return msg;
         }
+
+        function autoResizeTextarea(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+        }
+
+        // Initial UI
+        autoResizeTextarea(queryInput);
+        queryInput.addEventListener('input', () => autoResizeTextarea(queryInput));
+        queryInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
 
         // Send query to backend
         sendBtn.addEventListener("click", async () => {
@@ -82,8 +136,9 @@
 
             appendMessage("user", query);
             queryInput.value = "";
+            autoResizeTextarea(queryInput);
 
-            appendMessage("bot", "Thinking...");
+            const thinkingRow = appendMessage("bot", "Thinking...");
 
             const res = await fetch(`${BASE_URL}/ask`, {
                 method: "POST",
@@ -92,7 +147,8 @@
             });
 
             const data = await res.json();
-            chatWindow.lastChild.remove(); // remove "Thinking..."
+            // replace placeholder
+            thinkingRow.remove();
             appendMessage("bot", data.response || "No response");
         });
 
@@ -117,6 +173,11 @@
             const res = await fetch(`${BASE_URL}/clearDB`);
             const data = await res.json();
             appendMessage("bot", data.message || "Database cleared");
+        });
+
+        // Focus textarea on load
+        window.addEventListener('load', () => {
+            queryInput.focus();
         });
     </script>
 </body>
