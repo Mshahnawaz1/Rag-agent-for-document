@@ -1,104 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI tutor — RAG Document Chatbot</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RAG Document Chatbot</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom scrollbar styles for a cleaner look */
-        #chat-window::-webkit-scrollbar {
-            width: 8px;
-        }
-        #chat-window::-webkit-scrollbar-thumb {
-            background-color: #3b82f6; /* Blue-500 for a professional touch */
-            border-radius: 4px;
-        }
-        #chat-window::-webkit-scrollbar-track {
-            background-color: #1f2937; /* Gray-800 */
-        }
-        
-        /* Subtle Grid Pattern Background */
-        .grid-background {
-            background-color: #0f172a; /* Slate-900: Darker, more professional background */
-            background-image: linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .03) 25%, rgba(255, 255, 255, .03) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .03) 75%, rgba(255, 255, 255, .03) 76%, transparent 77%, transparent), 
-                              linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, .03) 25%, rgba(255, 255, 255, .03) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .03) 75%, rgba(255, 255, 255, .03) 76%, transparent 77%, transparent);
-            background-size: 50px 50px; /* Size of the grid cells */
-        }
+        #chat-window::-webkit-scrollbar { width: 6px; }
+        #chat-window::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        // Using a more modern, professional blue palette
-                        primary: {
-                            600: '#2563eb', // Blue-600 for main buttons
-                            700: '#1d4ed8', // Blue-700 for hover
-                            800: '#1e3a8a', // Blue-800 for chatbot messages
-                        },
-                        secondary: '#f97316', // Orange-500 for accents/status
-                    }
-                }
-            }
-        }
-    </script>
 </head>
+<body class="bg-gray-100 text-gray-800 flex flex-col min-h-screen">
 
-<body class="grid-background text-gray-100 min-h-screen flex items-center justify-center font-sans p-4">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white py-4 shadow">
+        <h1 class="text-center text-2xl font-semibold">AI Document Assistant</h1>
+    </header>
 
-    <div class="bg-gray-800 shadow-2xl rounded-2xl w-full max-w-5xl flex flex-col h-[95vh] lg:h-[90vh] overflow-hidden border border-gray-700/50">
-        
-        <header class="p-5 border-b border-gray-700/70 bg-gray-900 flex justify-between items-center sticky top-0 z-10 shadow-lg">
-            <div class="flex items-center space-x-3">
-                <svg class="w-8 h-8 text-primary-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <rect width="20" height="20" x="2" y="2" rx="4" fill="currentColor" class="opacity-90"></rect>
-                    <path d="M7 12h10M7 16h6" stroke="rgba(255,255,255,0.95)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
-                <div>
-                    <h1 class="text-2xl font-extrabold text-white tracking-tight leading-snug">AI tutor</h1>
-                    <div class="text-sm text-primary-600">Document Q&A</div>
-                </div>
-            </div>
-            <button id="clear-db-button" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 shadow-lg text-sm flex items-center space-x-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                <span>Clear Index</span>
+    <main class="flex flex-1">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col p-4 space-y-4">
+            <h2 class="text-lg font-semibold mb-2">Controls</h2>
+
+            <!-- Upload -->
+            <label class="block">
+                <span class="text-sm font-medium text-gray-700">Upload Document</span>
+                <input id="fileInput" type="file" accept=".pdf,.txt,.docx"
+                    class="mt-2 block w-full text-sm text-gray-600 border rounded-lg cursor-pointer focus:outline-none"/>
+            </label>
+            <button id="uploadBtn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm">
+                Upload & Process
             </button>
-        </header>
 
-        <div id="chat-window" class="flex-grow p-6 space-y-6 overflow-y-auto">
-            <div class="flex justify-start">
-                <div class="bg-gray-700 text-gray-200 p-4 rounded-xl rounded-tl-none max-w-3xl shadow-lg border border-gray-600/50">
-                    <p class="text-xs font-mono text-primary-600 mb-1">AI tutor</p>
-                    <p class="text-base">Welcome! To begin, upload a document (PDF, TXT, DOCX) using the section below, then ask a question about its content.</p>
-                </div>
-            </div>
-            </div>
+            <!-- Clear DB -->
+            <button id="clearBtn" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm">
+                Clear Database
+            </button>
+        </aside>
 
-        <div class="p-6 bg-gray-900 border-t border-gray-700/70 space-y-4">
-            
-            <form id="upload-form" class="flex space-x-4 items-center">
-                <label for="file-upload" class="flex-grow bg-gray-700 hover:bg-gray-600 cursor-pointer text-center py-3 px-4 rounded-xl transition duration-200 font-semibold text-sm shadow-inner border border-gray-600">
-                    <span id="file-name-display" class="truncate block">Select Document (.pdf, .txt, .docx)</span>
-                    <input id="file-upload" type="file" accept=".pdf,.txt,.docx" class="hidden">
-                </label>
-                <button type="submit" class="flex-shrink-0 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-8 rounded-xl transition duration-200 shadow-xl disabled:bg-gray-500 disabled:shadow-none" id="upload-button" disabled>
-                    Upload
-                </button>
-            </form>
+        <!-- Chat Area -->
+        <section class="flex-1 flex flex-col">
+            <div id="chat-window" class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50"></div>
 
-            <form id="chat-form" class="flex space-x-4">
-                <input id="question-input" type="text" placeholder="Ask a question about the indexed documents..." class="flex-grow p-4 bg-gray-700 border border-gray-600 rounded-xl focus:ring-primary-600 focus:border-primary-600 transition duration-150 shadow-inner placeholder-gray-400" required>
-                <button type="submit" class="flex-shrink-0 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-8 rounded-xl transition duration-200 shadow-xl">
+            <div class="border-t p-4 flex items-center bg-white">
+                <input id="queryInput" type="text" placeholder="Ask a question about your documents..."
+                    class="flex-1 border rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                <button id="sendBtn" class="ml-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
                     Send
                 </button>
-            </form>
-        </div>
-    </div>
+            </div>
+        </section>
+    </main>
 
-    <script src="index.js"></script>
+    <script>
+        const BASE_URL = window.location.origin; // Auto matches FastAPI base
+        const chatWindow = document.getElementById("chat-window");
+        const queryInput = document.getElementById("queryInput");
+        const sendBtn = document.getElementById("sendBtn");
+        const uploadBtn = document.getElementById("uploadBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const fileInput = document.getElementById("fileInput");
+
+        function appendMessage(sender, text) {
+            const msg = document.createElement("div");
+            msg.className = sender === "user"
+                ? "text-right"
+                : "text-left";
+            msg.innerHTML = `
+                <div class="${sender === "user" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"} 
+                    inline-block px-4 py-2 rounded-2xl max-w-[75%]">
+                    ${text}
+                </div>`;
+            chatWindow.appendChild(msg);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // Send query to backend
+        sendBtn.addEventListener("click", async () => {
+            const query = queryInput.value.trim();
+            if (!query) return;
+
+            appendMessage("user", query);
+            queryInput.value = "";
+
+            appendMessage("bot", "Thinking...");
+
+            const res = await fetch(`${BASE_URL}/ask`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query })
+            });
+
+            const data = await res.json();
+            chatWindow.lastChild.remove(); // remove "Thinking..."
+            appendMessage("bot", data.response || "No response");
+        });
+
+        // Upload document
+        uploadBtn.addEventListener("click", async () => {
+            const file = fileInput.files[0];
+            if (!file) return alert("Please select a file.");
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            appendMessage("bot", `Uploading ${file.name}...`);
+
+            const res = await fetch(`${BASE_URL}/upload`, { method: "POST", body: formData });
+            const data = await res.json();
+
+            appendMessage("bot", data.message || "Upload complete");
+        });
+
+        // Clear vector DB
+        clearBtn.addEventListener("click", async () => {
+            const res = await fetch(`${BASE_URL}/clearDB`);
+            const data = await res.json();
+            appendMessage("bot", data.message || "Database cleared");
+        });
+    </script>
 </body>
 </html>

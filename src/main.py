@@ -1,6 +1,7 @@
 from fastapi import UploadFile, File, FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -11,9 +12,11 @@ from rag_engine import Rag
 
 app = FastAPI(title="RAG Engine API", description="API for RAG", version="1.0.0")
 _rag = Rag()
+
 load_dotenv()
 
 UPLOAD = "../data/uploads"
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "../frontend")
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,10 +25,11 @@ app.add_middleware(
     allow_methods=["*"],      
     allow_headers=["*"],                # Allow all headers (including custom ones)
 )
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 @app.get("/")
 def read_root():
-    file_path = os.path.join(os.path.dirname(__file__), "../frontend/index.html")
+    file_path = os.path.join(FRONTEND_DIR, "index.html")
     return FileResponse(file_path)
 
 
