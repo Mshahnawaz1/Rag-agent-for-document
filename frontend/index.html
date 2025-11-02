@@ -83,7 +83,10 @@
     </main>
 
     <script>
-        const BASE_URL = window.location.origin; // Auto matches FastAPI base
+        // Use /api prefix when running through nginx (Docker), direct URL for local dev
+        const BASE_URL = window.location.port === '8000' 
+            ? window.location.origin  // Local dev: direct to FastAPI
+            : '/api';                  // Docker/production: through nginx proxy
         const chatWindow = document.getElementById("chat-window");
         const queryInput = document.getElementById("queryInput");
         const sendBtn = document.getElementById("sendBtn");

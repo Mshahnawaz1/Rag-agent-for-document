@@ -1,7 +1,5 @@
 from fastapi import UploadFile, File, FastAPI, HTTPException
-from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -16,9 +14,10 @@ _rag = Rag()
 load_dotenv()
 
 UPLOAD = "../data/uploads"
-FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "../frontend")
 
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+# Removed frontend mounting - nginx handles frontend in Docker
+# FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "../frontend")
+# app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,10 +27,10 @@ app.add_middleware(
     allow_headers=["*"],         
 )
 
-@app.get("/")
-def read_root():
-    file_path = os.path.join(FRONTEND_DIR, "index.html")
-    return FileResponse(file_path)
+# Health check endpoint
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "RAG Engine API"}
 
 
 @app.get("/clearDB")
