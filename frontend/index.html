@@ -59,6 +59,21 @@
             <button id="clearBtn" class="bg-[var(--danger)] hover:bg-[var(--danger-hover)] text-white py-2 px-4 rounded-lg text-sm transition-colors">
                 Clear Database
             </button>
+
+            <!-- Question mode selector -->
+            <div class="mt-4">
+                <span class="text-sm font-medium text-[var(--muted)]">Question Mode</span>
+                <div class="mt-2 space-y-1 text-sm text-[var(--muted)]">
+                    <label class="flex items-center space-x-2">
+                        <input id="modeGeneral" type="radio" name="queryMode" value="general" class="text-[var(--primary)]" checked />
+                        <span>Uploaded Documents</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input id="modeNcert" type="radio" name="queryMode" value="ncert" class="text-[var(--primary)]" />
+                        <span>NCERT Knowledge Base</span>
+                    </label>
+                </div>
+            </div>
         </aside>
 
         <!-- Chat Area -->
@@ -83,16 +98,17 @@
     </main>
 
     <script>
-        // Use /api prefix when running through nginx (Docker), direct URL for local dev
-        const BASE_URL = window.location.port === '8000' 
-            ? window.location.origin  // Local dev: direct to FastAPI
-            : '/api';                  // Docker/production: through nginx proxy
+        // For local development, always talk directly to FastAPI on port 8000.
+        // This avoids 404s like GET /api/health when the frontend is served from another port.
+        const BASE_URL = "http://127.0.0.1:8000";
         const chatWindow = document.getElementById("chat-window");
         const queryInput = document.getElementById("queryInput");
         const sendBtn = document.getElementById("sendBtn");
         const uploadBtn = document.getElementById("uploadBtn");
         const clearBtn = document.getElementById("clearBtn");
         const fileInput = document.getElementById("fileInput");
+        const modeGeneral = document.getElementById("modeGeneral");
+        const modeNcert = document.getElementById("modeNcert");
 
         function escapeHTML(str) {
             return str
@@ -143,7 +159,10 @@
 
             const thinkingRow = appendMessage("bot", "Thinking...");
 
-            const res = await fetch(`${BASE_URL}/ask`, {
+            const mode = document.querySelector('input[name="queryMode"]:checked')?.value || 'general';
+            const endpoint = mode === 'ncert' ? '/ask-ncert' : '/ask';
+
+            const res = await fetch(`${BASE_URL}${endpoint}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ query })
@@ -152,7 +171,16 @@
             const data = await res.json();
             // replace placeholder
             thinkingRow.remove();
-            appendMessage("bot", data.response || "No response");
+            if (!res.ok) {
+                appendMessage("bot", data.detail || `Request failed with status ${res.status}`);
+                return;
+            }
+
+            let messageText = data.response || "No response";
+            if (Array.isArray(data.sources) && data.sources.length > 0) {
+                messageText += "\n\nSources:\n" + data.sources.join("\n");
+            }
+            appendMessage("bot", messageText);
         });
 
         // Upload document
@@ -178,9 +206,19 @@
             appendMessage("bot", data.message || "Database cleared");
         });
 
-        // Focus textarea on load
+        // Health check + focus textarea on load
         window.addEventListener('load', () => {
             queryInput.focus();
+            (async () => {
+                try {
+                    const res = await fetch(`${BASE_URL}/health`);
+                    if (!res.ok) throw new Error(`Status ${res.status}`);
+                    const data = await res.json();
+                    appendMessage("bot", `Connected to backend: ${data.service || 'RAG Engine API'}`);
+                } catch (e) {
+                    appendMessage("bot", "Warning: Unable to reach backend. Check that the FastAPI server is running.");
+                }
+            })();
         });
     </script>
 </body>
