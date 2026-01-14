@@ -12,6 +12,8 @@ load_dotenv()
 
 PERSIST_DIRECTORY = "../data/chroma_db"
 
+NCERT_PERSIST_DIRECTORY = "../data/ncert_chroma_db"
+
 TEMPLATE = """Use the following pieces of context to answer the question at the end. 
 If you don't know the answer, just say that you don't know. 
 Keep the answer concise (max 3 sentences, 500 words). 
@@ -35,6 +37,7 @@ class Rag:
         self.vectordb = None
         self.QAprompt = ChatPromptTemplate.from_template(template)
         self.qa_chain = None
+        self.ncertdb = None
 
         if os.path.exists(PERSIST_DIRECTORY):
             try:
@@ -63,11 +66,23 @@ class Rag:
         self._initialize_lcel_chain()
         print(f"Vector store created at {PERSIST_DIRECTORY}")
 
-    def _retriever_info(self, question: str):
-        if not self.vectordb:
-            return "No VectorDB loaded."
-        results = self.vectordb.similarity_search(question, k=3)
+    def _retriever_info(self, question: str, type: str = "general"):
+        """        
+        Retrieve data from ncert database if type is 'ncert', else from uploaded documents.
+        """
+        if type == 'general':
+            if not self.vectordb:
+                return "No VectorDB loaded."
+            results = self.vectordb.similarity_search(question, k=3)
+        elif type == 'ncert':
+            self.ncertdb = Chroma(
+                persist_directory=NCERT_PERSIST_DIRECTORY,
+                embedding_function=self.embedding
+            )
+            results = self.ncertdb.similarity_search(question, k=3)
+        
         return "\n\n".join(doc.page_content for doc in results)
+
 
     def _initialize_lcel_chain(self):
         if not self.vectordb:
@@ -92,23 +107,34 @@ class Rag:
             except Exception as e:
                 return f"Error clearing DB: {e}"
 
-    def ask(self, question: str):
-        if not self.qa_chain:
-            return {
-                "status_code": 400,
-                "response": "No documents loaded. Please load documents first."
-            }
-
-        answer = self.qa_chain.invoke({"question": question})
+    def ask(self, question: str, type: str = "general"):
+        if type == 'general': 
+            if not self.qa_chain:
+                return {
+                    "status_code": 400,
+                    "response": "No documents loaded. Please load documents first."
+                }
+            answer = self.qa_chain.invoke({"question": question})
+        
+        if type == 'ncert':
+            ncert_qa_chain = (
+                RunnablePassthrough.assign(
+                    context=lambda x: self._retriever_info(x["question"], type="ncert")
+                )
+                | self.QAprompt
+                | self.llm
+                | StrOutputParser()
+            )
+            answer = ncert_qa_chain.invoke({"question": question})
         return {"status_code": 200, "response": answer}
 
 if __name__ == "__main__":
-    path = "../data/uploads/inte.pdf"
+    # path = "../data/uploads/inte.pdf"
     engine = Rag()
     engine._clear_db()
 
-    engine._load_docs(path)
+    # engine._load_docs(path)
     while(True):
         que = input("What is your question?")
-        result = engine.ask(que)
+        result = engine.ask(que, type="ncert")
         print(result)

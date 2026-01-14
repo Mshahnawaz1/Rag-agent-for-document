@@ -78,7 +78,7 @@ async def ask_question(request: AskRequest):
     if not os.getenv("GOOGLE_API_KEY"):
         raise HTTPException(status_code=400, detail="Missing GOOGLE_API_KEY in environment.")
 
-    response = _rag.ask(query)
+    response = _rag.ask(query, type="general")
 
     # Expect response to be a dict with keys 'status_code', 'response', 'sources'
     return JSONResponse({
@@ -86,6 +86,25 @@ async def ask_question(request: AskRequest):
         'response': response.get('response', ''),
         'sources': response.get('sources', [])
     })
+
+@app.post("/ask-ncert")
+async def ask_ncert(request: AskRequest):
+    query = (request.query or "").strip()
+
+    if not query:
+        raise HTTPException(status_code=400, detail="'query' must be a non-empty string")
+
+    if not os.getenv("GOOGLE_API_KEY"):
+        raise HTTPException(status_code=400, detail="Missing GOOGLE_API_KEY in environment.")
+
+    response = _rag.ask(query, type="ncert")
+
+    # Expect response to be a dict with keys 'status_code', 'response', 'sources'
+    return JSONResponse({
+        'status_code': response.get('status_code', 200),
+        'response': response.get('response', ''),
+        'sources': response.get('sources', [])
+    })    
 
 if __name__ == "__main__":
     import uvicorn
