@@ -1,0 +1,41 @@
+:root {
+  --bg: #fef3e2;
+  --surface: #ffffff;
+  --text: #000000;
+  --muted: #4a4a4a;
+  --border: #ffb84d;
+  --primary: #ff9933;
+  --primary-hover: #ff8000;
+  --ring: rgba(255, 153, 51, 0.35);
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --chat-bg: #fff8f0;
+  --input-bg: #ffffff;
+  --input-border: #ffb84d;
+  --bubble-user-bg: #ff9933;
+  --bubble-user-text: #000000;
+  --bubble-bot-bg: #ffffff;
+  --bubble-bot-text: #000000;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
